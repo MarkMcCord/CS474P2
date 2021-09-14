@@ -15,5 +15,11 @@ void writeImage(char fname[], ImageType& image);
 
 int main(int argc, char * argv[])
 {
+    int val;
+
+    ImageType image(256, 256, 255);
+    readImage(argv[1], image);
+    image.getPixelVal(2, 2, val);
+    writeImage(argv[2], image);
     return 0;
 }

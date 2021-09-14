@@ -24,17 +24,26 @@ void readImage(char fname[], ImageType& image)
 
  // read header
 
- ifp.getline(header,100,'\n');
- if ( (header[0]!=80) ||    /* 'P' */
-      (header[1]!=53) ) {   /* '5' */
+ ifp.getline(header,100,'\n'); //P5 thing
+ if ( (header[0]!='P') ||    /* 'P' */
+      (header[1]!='5') ) {   /* '5' */
       cout << "Image " << fname << " is not PGM" << endl;
       exit(1);
  }
  //cout << header << endl;
- 
- M=strtol(header + 3,&ptr,0);
+
+ ifp.getline(header,100,'\n'); //comment
+ //cout << header << endl;
+
+ ifp.getline(header,100,'\n'); //size
+ //cout << header << endl;
+ M=strtol(header ,&ptr,0);
  N=strtol(ptr,&ptr,0);
- Q=strtol(ptr,&ptr,0);
+
+ ifp.getline(header,100,'\n'); //range
+ //cout << header << endl;
+ Q=strtol(header,&ptr,0);
+
  //cout << M << " " << N << " " << Q << endl;
  charImage = (unsigned char *) new unsigned char [M*N];
 
