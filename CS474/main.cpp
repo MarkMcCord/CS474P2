@@ -40,65 +40,54 @@ int main(int argc, char * argv[])
     return 0;
 }
 
-void eqHistorgram(char fname[])
+void eqHistogram(char fname[])
 {
     ImageType image(256, 256, 255);
     readImage(fname, image);
 
-    int n_bins = 255 + 1;
+    //Declaration for storing the two histograms
+    vector<int> hist(256, 0);
+    vector<int> eqhist(256);
+
+    //File for output
+    char name[] = "fin.pgm";
+
+    //Calculate Histogram
+    for(int i = 0; i < 256; i++){
+        for(int j = 0; j < 256; j++){
+            int temp;
+            image.getPixelVal(i, j, temp);
+            hist[temp]++;
+        }
+    }
+
+    //Calculate total amount of pixels
     int total = 256 * 256;
+    int curr = 0;
 
-    // Compute histogram
-    vector<int> hist(n_bins, 0);
+    // calculating cumulative frequency and new gray levels
+    for (int i = 0; i < 256; i++) {
+        // cumulative frequency1
+        curr += hist[i];
+  
+        // calculating new gray level after multiplying by
+        // maximum gray count which is 255 and dividing by
+        // total number of pixels
+        eqhist[i] = round((((float)curr) * 255) / total);
+    }
+
+    ImageType eqImage(256, 256, 255);
+
+    // performing histogram equalisation by mapping new gray levels
     for (int i = 0; i < 256; i++) {
         for(int j = 0; j < 256; j++){
-            int temp;
-            hist[image.getPixelVal(i, j, temp),0]++;
+            // mapping to new gray level values
+            eqImage.setPixelVal(i, j, eqhist[j]);
         }
     }
 
-    //Find first nonzero bin
-    int i = 0;
-    while(!hist[i]) ++i;
+    writeImage(name, eqImage);
 
-    if (hist[i] == total) {
-        for (int j = 0; j < 256; j++) { 
-            for(int k = 0; k < 256; k++){
-                int temp;
-                image.setPixelVal(j, k, i); 
-            }
-        }
-        return;
-    }
-
-    // Compute scale
-    float scale = (n_bins - 1.f) / (total - hist[i]);
-
-    // Initialize lut
-    vector<int> lut(n_bins, 0);
-    i++;
-
-    int sum = 0;
-    for (; i < hist.size(); ++i) {
-        sum += hist[i];
-        // the value is saturated in range [0, max_val]
-        lut[i] = max(0, min(int(round(sum * scale)), 255));
-    }
-
-    ImageType equalizedImage(256, 256, 255);
-
-    // Apply equalization
-    for (int i = 0; i < 256; i++) {
-        for(int j = 0; j < 256; j++){
-            int temp;
-            equalizedImage.setPixelVal(i, j, lut[image.getPixelVal(i,j,temp), 0]);
-        }
-    }
-    char name[] = "in.pgm";
-    name[0] = '0' + i;
-    name[1] = fname[0];
-
-    writeImage(name, equalizedImage);
 
 }
 
