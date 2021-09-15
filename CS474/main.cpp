@@ -27,15 +27,16 @@ int main(int argc, char * argv[])
     writeImage(argv[2], image);*/
 
     //part 1
-    // char lenna[] = "lenna.pgm";
-    // char peppers[] = "peppers.pgm";
-    // sample(lenna);
-    // sample(peppers);
+    char lenna[] = "lenna.pgm";
+    char peppers[] = "peppers.pgm";
+    sample(lenna);
+    sample(peppers);
 
     //part 3
-    char boat[] = "boat.pgm";
+    char boat[] = "lenna.pgm";
     char f_16[] = "f_16.pgm";
     eqHistogram(boat);
+    eqHistogram(f_16);
 
     return 0;
 }
@@ -50,7 +51,10 @@ void eqHistogram(char fname[])
     vector<int> eqhist(256, 0);
 
     //File for output
-    char name[] = "fin.pgm";
+    char name[] = "xxx.pgm";
+    name[0] = 'e';
+    name[1] = 'q';
+    name[2] = fname[0];
 
     //Calculate Histogram
     for(int i = 0; i < 256; i++){
