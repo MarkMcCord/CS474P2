@@ -47,7 +47,7 @@ void eqHistogram(char fname[])
 
     //Declaration for storing the two histograms
     vector<int> hist(256, 0);
-    vector<int> eqhist(256);
+    vector<int> eqhist(256, 0);
 
     //File for output
     char name[] = "fin.pgm";
@@ -82,12 +82,14 @@ void eqHistogram(char fname[])
     for (int i = 0; i < 256; i++) {
         for(int j = 0; j < 256; j++){
             // mapping to new gray level values
-            eqImage.setPixelVal(i, j, eqhist[j]);
+            int temp, temp2;
+            image.getPixelVal(i, j, temp);
+            eqImage.setPixelVal(i, j, eqhist[temp]);
         }
     }
 
+    //Output equalized image
     writeImage(name, eqImage);
-
 
 }
 
