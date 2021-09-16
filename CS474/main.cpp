@@ -16,6 +16,7 @@ void readImage(char fname[], ImageType& image);
 void writeImage(char fname[], ImageType& image);
 void sample (char fname[]);
 void eqHistogram(char fname[]);
+void quantization(char fname[]);
 
 int main(int argc, char * argv[])
 {
@@ -32,6 +33,10 @@ int main(int argc, char * argv[])
     sample(lenna);
     sample(peppers);
 
+    //part 2
+    quantization(lenna);
+    quantization(peppers);
+
     //part 3
     char boat[] = "lenna.pgm";
     char f_16[] = "f_16.pgm";
@@ -39,6 +44,32 @@ int main(int argc, char * argv[])
     eqHistogram(f_16);
 
     return 0;
+}
+
+void quantization(char fname[])
+{
+    ImageType quantifiedImage(256, 256, 255);
+    ImageType image(256, 256, 255);
+    readImage(fname, image);
+
+    int f = 1;
+    for (int i = 2; i <= 256; i *= 4) {
+        char name[] = "xxx.pgm";
+        name[0] = '0' + (f++);
+        name[1] = 'q';
+        name[2] = fname[0];
+        for (int j = 0; j < 256; j++){
+            for (int k = 0; k < 256; k++){
+                int temp;
+                image.getPixelVal(j, k, temp);
+                temp = round(temp/i);
+                temp *= i;
+                quantifiedImage.setPixelVal(j, k, temp);
+            }
+        }
+        writeImage(name,quantifiedImage);
+    }
+    
 }
 
 void eqHistogram(char fname[])
