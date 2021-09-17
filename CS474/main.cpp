@@ -17,6 +17,7 @@ void writeImage(char fname[], ImageType& image);
 void sample (char fname[]);
 void eqHistogram(char fname[]);
 void quantization(char fname[]);
+void specHistogram(char fname1[], char fname2[]);
 
 int main(int argc, char * argv[])
 {
@@ -30,18 +31,23 @@ int main(int argc, char * argv[])
     //part 1
     char lenna[] = "lenna.pgm";
     char peppers[] = "peppers.pgm";
-    sample(lenna);
-    sample(peppers);
+    //sample(lenna);
+    //sample(peppers);
 
     //part 2
-    quantization(lenna);
-    quantization(peppers);
+    //quantization(lenna);
+    //quantization(peppers);
 
     //part 3
-    char boat[] = "lenna.pgm";
+    char boat[] = "boat.pgm";
     char f_16[] = "f_16.pgm";
-    eqHistogram(boat);
-    eqHistogram(f_16);
+    //eqHistogram(boat);
+    //eqHistogram(f_16);
+
+    //part 4
+    char sf[] = "sf.pgm";
+    specHistogram(boat, sf);
+    specHistogram(f_16, peppers);
 
     return 0;
 }
@@ -126,6 +132,84 @@ void eqHistogram(char fname[])
     //Output equalized image
     writeImage(name, eqImage);
 
+}
+
+void specHistogram(char fname1[], char fname2[]){
+    ImageType image(256, 256, 255);
+    readImage(fname1, image);
+    ImageType spec(256, 256, 255);
+    readImage(fname2, spec);
+
+    vector<int> ihist(256, 0);
+    vector<int> shist(256,0);
+    vector<int> ieqhist(256, 0);
+    vector<int> seqhist(256, 0);
+
+    //histograms
+    for(int i = 0; i < 256; i++){
+        for(int j = 0; j < 256; j++){
+            int temp;
+            image.getPixelVal(i, j, temp);
+            ihist[temp]++;
+        }
+    }
+    for(int i = 0; i < 256; i++){
+        for(int j = 0; j < 256; j++){
+            int temp;
+            spec.getPixelVal(i, j, temp);
+            shist[temp]++;
+        }
+    }
+
+    //equalized histograms
+    int total = 256 * 256;
+    int curr = 0;
+
+    for (int i = 0; i < 256; i++) {
+        curr += ihist[i];
+        ieqhist[i] = round((((float)curr) * 255) / total);
+        //cout << i << " " << ieqhist[i] << endl;
+    }
+    curr = 0;
+    for (int i = 0; i < 256; i++) {
+        curr += shist[i];
+        seqhist[i] = round((((float)curr) * 255) / total);
+    }
+
+    //inverse transform
+    vector<int> inverse(256, 0);
+    for (int  i = 0; i < 256; i++){
+        int temp = 0;
+        for (int j = 0; j < 256; j++){
+            if (seqhist[j] == ieqhist[i]){
+                temp = j;
+            }
+        }
+        inverse[ieqhist[i]] = temp;
+        //cout << i << " " << temp << endl;
+    }
+    
+    //fix gaps in inverse
+    for(int  i = 0; i < 256; i++){
+        if (inverse[i] == 0){
+            inverse[i] = inverse[i-1];
+        }
+    }
+
+    //write to image
+    ImageType specImage(256, 256, 255);
+
+    for (int i = 0; i < 256; i++) {
+        for(int j = 0; j < 256; j++){
+            int temp;
+            image.getPixelVal(i, j, temp);
+            specImage.setPixelVal(i, j, inverse[temp]);
+        }
+    }
+
+    char name[] = "specx.pgm";
+    name[4] = fname1[0];
+    writeImage(name, specImage);
 }
 
 void sample(char fname[]){
