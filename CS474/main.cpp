@@ -31,18 +31,18 @@ int main(int argc, char * argv[])
     //part 1
     char lenna[] = "lenna.pgm";
     char peppers[] = "peppers.pgm";
-    //sample(lenna);
-    //sample(peppers);
+    sample(lenna);
+    sample(peppers);
 
     //part 2
-    //quantization(lenna);
-    //quantization(peppers);
+    quantization(lenna);
+    quantization(peppers);
 
     //part 3
     char boat[] = "boat.pgm";
     char f_16[] = "f_16.pgm";
-    //eqHistogram(boat);
-    //eqHistogram(f_16);
+    eqHistogram(boat);
+    eqHistogram(f_16);
 
     //part 4
     char sf[] = "sf.pgm";
@@ -217,9 +217,9 @@ void sample(char fname[]){
     readImage(fname, image);
     for (int i = 2; i < 16; i = i * 2) {
         ImageType sampledImage(256/i, 256/i, 255);
-        char name[] = "in.pgm";
+        char name[] = "isn.pgm";
         name[0] = '0' + i;
-        name[1] = fname[0];
+        name[2] = fname[0];
         for (int j = 0; j < 256/i; j++){
             for (int k = 0; k < 256/i; k++){
                 int temp;
