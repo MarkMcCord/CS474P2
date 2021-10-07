@@ -14,227 +14,147 @@ using namespace std;
 
 void readImage(char fname[], ImageType& image);
 void writeImage(char fname[], ImageType& image);
-void sample (char fname[]);
-void eqHistogram(char fname[]);
-void quantization(char fname[]);
-void specHistogram(char fname1[], char fname2[]);
+
+ImageType padding(char fname[], int size);
+void smoothing(char fname[], int size, bool G);
 
 int main(int argc, char * argv[])
 {
-    /*int val;
-
-    ImageType image(256, 256, 255);
-    readImage(argv[1], image);
-    image.getPixelVal(2, 2, val);
-    writeImage(argv[2], image);*/
-
-    //part 1
-    char lenna[] = "lenna.pgm";
-    char peppers[] = "peppers.pgm";
-    sample(lenna);
-    sample(peppers);
-
-    //part 2
-    quantization(lenna);
-    quantization(peppers);
-
-    //part 3
     char boat[] = "boat.pgm";
     char f_16[] = "f_16.pgm";
-    eqHistogram(boat);
-    eqHistogram(f_16);
-
-    //part 4
+    char lenna[] = "lenna.pgm";
+    char peppers[] = "peppers.pgm";
     char sf[] = "sf.pgm";
-    specHistogram(boat, sf);
-    specHistogram(f_16, peppers);
+
+    //Part 1
+
+    //Part 2
+    //smoothing(lenna, 7, 0);
+    //smoothing(lenna, 15, 0);
+    smoothing(lenna, 7, 1);
+    smoothing(lenna, 15, 1);
 
     return 0;
 }
 
-void quantization(char fname[])
-{
-    ImageType quantifiedImage(256, 256, 255);
-    ImageType image(256, 256, 255);
-    readImage(fname, image);
+ImageType padding(char fname[], int size){
 
-    int f = 1;
-    for (int i = 2; i <= 256; i *= 4) {
-        char name[] = "xxx.pgm";
-        name[0] = '0' + (f++);
-        name[1] = 'q';
-        name[2] = fname[0];
+    //size is the mask size, not the number of pads you need
+    ImageType image (256, 256, 255);
+    readImage (fname, image);
+    ImageType newImage (256+(size-1), 256+(size-1), 255);
+    int temp;
+    for (int i = 0; i < 256; i++){
         for (int j = 0; j < 256; j++){
-            for (int k = 0; k < 256; k++){
-                int temp;
-                image.getPixelVal(j, k, temp);
-                temp = round(temp/i);
-                temp *= i;
-                quantifiedImage.setPixelVal(j, k, temp);
-            }
+            image.getPixelVal(i, j, temp);
+            newImage.setPixelVal(i+(size/2), j+(size/2), temp);
         }
-        writeImage(name,quantifiedImage);
     }
+    return newImage;
+}
+
+static int g7[7][7] = {
+		{1, 1, 2, 2, 2, 1, 1},
+		{1, 2, 2, 4, 2, 2, 1},
+		{2, 2, 4, 8, 4, 2, 2},
+		{2, 4, 8, 16, 8, 4, 2},
+		{2, 2, 4, 8, 4, 2, 2},
+		{1, 2, 2, 4, 2, 2, 1},
+		{1, 1, 2, 2, 2, 1, 1}};
+
+static int g15[15][15] = {
+	{2, 2,  3,  4,  5,  5,  6,  6,  6,  5,  5,  4,  3, 2, 2},
+	{2, 3,  4,  5,  7,  7,  8,  8,  8,  7,  7,  5,  4, 3, 2},
+	{3, 4,  6,  7,  9, 10, 10, 11, 10, 10,  9,  7,  6, 4, 3},
+	{4, 5,  7,  9, 10, 12, 13, 13, 13, 12, 10,  9,  7, 5, 4},
+	{5, 7,  9, 11, 13, 14, 15, 16, 15, 14, 13, 11,  9, 7, 5},
+	{5, 7, 10, 12, 14, 16, 17, 18, 17, 16, 14, 12, 10, 7, 5},
+	{6, 8, 10, 13, 15, 17, 19, 19, 19, 17, 15, 13, 10, 8, 6},
+	{6, 8, 11, 13, 16, 18, 19, 20, 19, 18, 16, 13, 11, 8, 6},
+	{6, 8, 10, 13, 15, 17, 19, 19, 19, 17, 15, 13, 10, 8, 6},
+	{5, 7, 10, 12, 14, 16, 17, 18, 17, 16, 14, 12, 10, 7, 5},
+	{5, 7,  9, 11, 13, 14, 15, 16, 15, 14, 13, 11,  9, 7, 5},
+	{4, 5,  7,  9, 10, 12, 13, 13, 13, 12, 10,  9,  7, 5, 4},
+	{3, 4,  6,  7,  9, 10, 10, 11, 10, 10,  9,  7,  6, 4, 3},
+	{2, 3,  4,  5,  7,  7,  8,  8,  8,  7,  7,  5,  4, 3, 2},
+	{2, 2,  3,  4,  5,  5,  6,  6,  6,  5,  5,  4,  3, 2, 2},};
+
+void smoothing(char fname[], int size, bool G){
+
+    ImageType originalImage = padding(fname, size);
+    ImageType smoothImage(256, 256, 255);
+
+    char newfname[] = "smooth_i_i_i.pgm";
+    newfname[7] = fname[0];
+    if (G){
+        newfname[9] = 'G';
+    }
+    else {
+        newfname[9] =  'A';
+    }
+    newfname[11] = '0' + (size%10);
     
-}
-
-void eqHistogram(char fname[])
-{
-    ImageType image(256, 256, 255);
-    readImage(fname, image);
-
-    //Declaration for storing the two histograms
-    vector<int> hist(256, 0);
-    vector<int> eqhist(256, 0);
-
-    //File for output
-    char name[] = "xxx.pgm";
-    name[0] = 'e';
-    name[1] = 'q';
-    name[2] = fname[0];
-
-    //Calculate Histogram
-    for(int i = 0; i < 256; i++){
-        for(int j = 0; j < 256; j++){
-            int temp;
-            image.getPixelVal(i, j, temp);
-            hist[temp]++;
-        }
-    }
-
-    //Calculate total amount of pixels
-    int total = 256 * 256;
-    int curr = 0;
-
-    // calculating cumulative frequency and new gray levels
-    for (int i = 0; i < 256; i++) {
-        // cumulative frequency1
-        curr += hist[i];
-  
-        // calculating new gray level after multiplying by
-        // maximum gray count which is 255 and dividing by
-        // total number of pixels
-        eqhist[i] = round((((float)curr) * 255) / total);
-    }
-
-    ImageType eqImage(256, 256, 255);
-
-    // performing histogram equalisation by mapping new gray levels
-    for (int i = 0; i < 256; i++) {
-        for(int j = 0; j < 256; j++){
-            // mapping to new gray level values
-            int temp, temp2;
-            image.getPixelVal(i, j, temp);
-            eqImage.setPixelVal(i, j, eqhist[temp]);
-        }
-    }
-
-    //Output equalized image
-    writeImage(name, eqImage);
-
-}
-
-void specHistogram(char fname1[], char fname2[]){
-    ImageType image(256, 256, 255);
-    readImage(fname1, image);
-    ImageType spec(256, 256, 255);
-    readImage(fname2, spec);
-
-    vector<int> ihist(256, 0);
-    vector<int> shist(256,0);
-    vector<int> ieqhist(256, 0);
-    vector<int> seqhist(256, 0);
-
-    //histograms
-    for(int i = 0; i < 256; i++){
-        for(int j = 0; j < 256; j++){
-            int temp;
-            image.getPixelVal(i, j, temp);
-            ihist[temp]++;
-        }
-    }
-    for(int i = 0; i < 256; i++){
-        for(int j = 0; j < 256; j++){
-            int temp;
-            spec.getPixelVal(i, j, temp);
-            shist[temp]++;
-        }
-    }
-
-    //equalized histograms
-    int total = 256 * 256;
-    int curr = 0;
-
-    for (int i = 0; i < 256; i++) {
-        curr += ihist[i];
-        ieqhist[i] = round((((float)curr) * 255) / total);
-        //cout << i << " " << ieqhist[i] << endl;
-    }
-    curr = 0;
-    for (int i = 0; i < 256; i++) {
-        curr += shist[i];
-        seqhist[i] = round((((float)curr) * 255) / total);
-    }
-
-    //inverse transform
-    vector<int> inverse(256, 0);
-    for (int  i = 0; i < 256; i++){
-        int temp = 0;
-        for (int j = 0; j < 256; j++){
-            if (seqhist[j] == ieqhist[i]){
-                temp = j;
+    int sum = 0;
+    int factor = 0;
+    int temp;
+    if(!G){
+        for (int i = 0; i < 256; i++){
+            for (int j = 0; j < 256; j++){ //for each pixel in the original image
+                for (int k = i; k < i + size; k++){
+                    for (int l = j; l < j + size; l++){ //for each weight in the mask
+                        originalImage.getPixelVal(k, l, temp);
+                        sum = sum + temp;
+                        //cout << k << ", " << l << endl;
+                    }
+                }
+                //calculate sum
+                sum = sum / (size * size);
+                smoothImage.setPixelVal(i, j, sum);
+                cout << "Pixel " << i << ", " << j << endl;
+                sum  = 0;
             }
         }
-        inverse[ieqhist[i]] = temp;
-        //cout << i << " " << temp << endl;
     }
-    
-    //fix gaps in inverse
-    for(int  i = 0; i < 256; i++){
-        if (inverse[i] == 0){
-            inverse[i] = inverse[i-1];
-        }
-    }
-
-    //write to image
-    ImageType specImage(256, 256, 255);
-
-    for (int i = 0; i < 256; i++) {
-        for(int j = 0; j < 256; j++){
-            int temp;
-            image.getPixelVal(i, j, temp);
-            specImage.setPixelVal(i, j, inverse[temp]);
-        }
-    }
-
-    char name[] = "specx.pgm";
-    name[4] = fname1[0];
-    writeImage(name, specImage);
-}
-
-void sample(char fname[]){
-    ImageType image(256, 256, 255);
-    readImage(fname, image);
-    for (int i = 2; i < 16; i = i * 2) {
-        ImageType sampledImage(256/i, 256/i, 255);
-        char name[] = "isn.pgm";
-        name[0] = '0' + i;
-        name[2] = fname[0];
-        for (int j = 0; j < 256/i; j++){
-            for (int k = 0; k < 256/i; k++){
-                int temp;
-                image.getPixelVal(j*i, k*i, temp);
-                sampledImage.setPixelVal(j, k, temp);
+    else if(size == 7){
+        for (int i = 0; i < 256; i++){
+            for (int j = 0; j < 256; j++){ //for each pixel in the original image
+                for (int k = i; k < i + size; k++){
+                    for (int l = j; l < j + size; l++){ //for each weight in the mask
+                        originalImage.getPixelVal(k, l, temp);
+                        sum = sum + (temp * g7[k-i][l-j]);
+                        factor = factor + g7[k-i][l-j];
+                        //cout << k << ", " << l << endl;
+                    }
+                }
+                //calculate sum
+                sum = sum / factor;
+                smoothImage.setPixelVal(i, j, sum);
+                cout << "Pixel " << i << ", " << j << endl;
+                sum  = 0;
+                factor = 0;
             }
         }
-        ImageType scaledImage(256, 256, 255);
-        for(int j = 0; j < 256; j++){
-            for(int k = 0; k < 256; k++){
-                int temp;
-                sampledImage.getPixelVal(j/i, k/i, temp);
-                scaledImage.setPixelVal(j, k, temp);
+    }
+    else if(size == 15){
+        for (int i = 0; i < 256; i++){
+            for (int j = 0; j < 256; j++){ //for each pixel in the original image
+                for (int k = i; k < i + size; k++){
+                    for (int l = j; l < j + size; l++){ //for each weight in the mask
+                        originalImage.getPixelVal(k, l, temp);
+                        sum = sum + (temp * g15[k-i][l-j]);
+                        factor = factor + g15[k-i][l-j];
+                        //cout << k << ", " << l << endl;
+                    }
+                }
+                //calculate sum
+                sum = sum / factor;
+                smoothImage.setPixelVal(i, j, sum);
+                cout << "Pixel " << i << ", " << j << endl;
+                sum  = 0;
+                factor = 0;
             }
         }
-        writeImage(name,scaledImage);
     }
+    writeImage(newfname, smoothImage);
 }
+
