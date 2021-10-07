@@ -3,6 +3,7 @@
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <fstream>
 #include <sstream>
 #include <cmath>
@@ -16,7 +17,10 @@ void readImage(char fname[], ImageType& image);
 void writeImage(char fname[], ImageType& image);
 
 ImageType padding(char fname[], int size);
+void salt(char fname[], int percent);
+
 void smoothing(char fname[], int size, bool G);
+void median(char fname[], int size, int percent);
 
 int main(int argc, char * argv[])
 {
@@ -31,8 +35,16 @@ int main(int argc, char * argv[])
     //Part 2
     //smoothing(lenna, 7, 0);
     //smoothing(lenna, 15, 0);
-    smoothing(lenna, 7, 1);
-    smoothing(lenna, 15, 1);
+    //smoothing(lenna, 7, 1);
+    //smoothing(lenna, 15, 1);
+
+    //Part 3
+    salt(lenna, 50);
+    char salted_l[] = "salted_l.pgm";
+    median(salted_l, 7, 50);
+    median(salted_l, 15, 50);
+    smoothing(salted_l, 7, 0);
+    smoothing(salted_l, 15, 0);
 
     return 0;
 }
@@ -51,6 +63,27 @@ ImageType padding(char fname[], int size){
         }
     }
     return newImage;
+}
+
+void salt(char fname[], int percent){
+    char newfname[] = "salted_i.pgm";
+    newfname[7] = fname[0]; 
+
+    ImageType image (256, 256, 255);
+    readImage(fname, image);
+    for (int i = 0; i < 256; i++){
+        for (int j = 0; j < 256; j++){
+            if (rand() % 100 + 1 <= percent){
+                if (rand() % 2 + 1 == 1){
+                    image.setPixelVal(i, j, 0);
+                }
+                else{
+                    image.setPixelVal(i, j, 255);
+                }
+            }
+        }
+    }
+    writeImage(newfname, image);
 }
 
 static int g7[7][7] = {
@@ -158,3 +191,36 @@ void smoothing(char fname[], int size, bool G){
     writeImage(newfname, smoothImage);
 }
 
+void median(char fname[], int size, int percent){
+
+    ImageType originalImage = padding(fname, size);
+    ImageType medianImage(256, 256, 255);
+
+    char newfname[] = "median_i_i_ii.pgm";
+    newfname[7] = fname[7];
+    newfname[9] = '0' + (size%10);
+    newfname[11] = '0' + (percent/10);
+    newfname[12] = '0' + (percent%10);
+
+    int array[size*size];
+    int n = sizeof(array) / sizeof(array[0]);
+
+    int factor = 0;
+    int temp;
+        for (int i = 0; i < 256; i++){
+            for (int j = 0; j < 256; j++){ //for each pixel in the original image
+                for (int k = i; k < i + size; k++){
+                    for (int l = j; l < j + size; l++){ //for each weight in the mask
+                        originalImage.getPixelVal(k, l, temp);
+                        array[((k-i)*size)+((l-j)%size)] = temp;
+                    }
+                }
+                sort(array, array + n);
+                temp = array[(size*size)/2];
+                medianImage.setPixelVal(i, j, temp);
+                cout << "Pixel " << i << ", " << j << endl;
+                temp = 0;
+            }
+        }
+    writeImage(newfname, medianImage);
+}

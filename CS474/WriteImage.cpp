@@ -35,7 +35,7 @@ void writeImage(char fname[], ImageType& image)
    exit(1);
  }
 
- ofp << "P5" << " " << N << " " << M << " " << Q << endl;
+ ofp << "P5" << endl << endl << N << " " << M << endl << Q << endl;
 
  ofp.write( reinterpret_cast<char *>(charImage), (M*N)*sizeof(unsigned char));
 
