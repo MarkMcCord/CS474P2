@@ -23,6 +23,8 @@ void salt(char fname[], int percent);
 void smoothing(char fname[], int size, bool G);
 void median(char fname[], int size, int percent);
 void correlation(char image[], char pattern[]);
+void unsharp(char fname[]);
+void highboost(char fname[]);
 
 int main(int argc, char *argv[]) {
 	char boat[]    = "boat.pgm";
@@ -34,7 +36,7 @@ int main(int argc, char *argv[]) {
 	char pattern[] = "pattern.pgm";
 
 	// Part 1
-	correlation(image, pattern);
+	// correlation(image, pattern);
 
 	// Part 2
 	// smoothing(lenna, 7, 0);
@@ -49,6 +51,10 @@ int main(int argc, char *argv[]) {
 	// median(salted_l, 15, 50);
 	// smoothing(salted_l, 7, 0);
 	// smoothing(salted_l, 15, 0);
+
+	// Part 4
+	unsharp(lenna);
+	highboost(lenna);
 
 	return 0;
 }
@@ -66,6 +72,90 @@ ImageType padding(char fname[], int size) {
 		}
 	}
 	return newImage;
+}
+
+void unsharp(char fname[]) {
+	// Initialize f
+	ImageType baseImage(256, 256, 255);
+	ImageType tempImage(256, 256, 255);
+	readImage(fname, baseImage);
+
+	// Initialize FLP
+	smoothing(fname, 15, 1);
+	char smoothedImage[] = "smooth_i_a_5.pgm";
+	smoothedImage[7]     = fname[0];
+
+	readImage(smoothedImage, tempImage);
+
+	// Initialize and calculate Gmask
+	ImageType maskImage(256, 256, 255);
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			int temp1, temp2, temp3;
+			baseImage.getPixelVal(i, j, temp1);
+			tempImage.getPixelVal(i, j, temp2);
+			temp3 = temp1 - temp2;
+			maskImage.setPixelVal(i, j, temp3);
+		}
+	}
+
+	// Initialize and calculate G
+	ImageType finalImage(256, 256, 255);
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			int temp1, temp2, temp3;
+			baseImage.getPixelVal(i, j, temp1);
+			maskImage.getPixelVal(i, j, temp2);
+			temp3 = temp1 + (temp2 * 1);
+			finalImage.setPixelVal(i, j, temp3);
+		}
+	}
+
+	char unsharpImage[] = "unsharp_i_a_5.pgm";
+	unsharpImage[8]     = fname[0];
+	writeImage(unsharpImage, finalImage);
+}
+
+void highboost(char fname[]) {
+	// Initialize f
+	ImageType baseImage(256, 256, 255);
+	ImageType tempImage(256, 256, 255);
+	readImage(fname, baseImage);
+
+	// Initialize FLP
+	smoothing(fname, 15, 1);
+	char smoothedImage[] = "smooth_i_a_5.pgm";
+	smoothedImage[7]     = fname[0];
+
+	readImage(smoothedImage, tempImage);
+
+	// Initialize and calculate Gmask
+	ImageType maskImage(256, 256, 255);
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			int temp1, temp2, temp3;
+			baseImage.getPixelVal(i, j, temp1);
+			tempImage.getPixelVal(i, j, temp2);
+			temp3 = temp1 - temp2;
+			maskImage.setPixelVal(i, j, temp3);
+		}
+	}
+
+	// Initialize and calculate G
+	ImageType finalImage(256, 256, 255);
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			int temp1, temp2, temp3;
+			baseImage.getPixelVal(i, j, temp1);
+			maskImage.getPixelVal(i, j, temp2);
+			temp3 = temp1 + (temp2 * 2);
+			finalImage.setPixelVal(i, j, temp3);
+		}
+	}
+
+	char highboostImage[] = "highboost_i_a_5.pgm";
+	highboostImage[10]    = fname[0];
+	writeImage(highboostImage, finalImage);
 }
 
 void correlation(char image[], char pattern[]) {
@@ -204,7 +294,7 @@ void smoothing(char fname[], int size, bool G) {
 				// calculate sum
 				sum = sum / (size * size);
 				smoothImage.setPixelVal(i, j, sum);
-				cout << "Pixel " << i << ", " << j << endl;
+				// cout << "Pixel " << i << ", " << j << endl;
 				sum = 0;
 			}
 		}
@@ -222,7 +312,7 @@ void smoothing(char fname[], int size, bool G) {
 				// calculate sum
 				sum = sum / factor;
 				smoothImage.setPixelVal(i, j, sum);
-				cout << "Pixel " << i << ", " << j << endl;
+				// cout << "Pixel " << i << ", " << j << endl;
 				sum    = 0;
 				factor = 0;
 			}
@@ -241,7 +331,7 @@ void smoothing(char fname[], int size, bool G) {
 				// calculate sum
 				sum = sum / factor;
 				smoothImage.setPixelVal(i, j, sum);
-				cout << "Pixel " << i << ", " << j << endl;
+				// cout << "Pixel " << i << ", " << j << endl;
 				sum    = 0;
 				factor = 0;
 			}
