@@ -62,9 +62,9 @@ void readImage(char fname[], ImageType& image)
 
  int val;
 
- for(i=0; i<N; i++)
-   for(j=0; j<M; j++) {
-     val = (int)charImage[i*M+j];
+ for(i=0; i<M; i++)
+   for(j=0; j<N; j++) {
+     val = (int)charImage[i*N+j];
      image.setPixelVal(i, j, val);     
    }
 
