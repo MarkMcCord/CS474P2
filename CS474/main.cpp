@@ -56,8 +56,10 @@ int main(int argc, char *argv[]) {
 	// smoothing(salted_l, 15, 0);
 
 	// Part 4
-	unsharp(lenna);
-	highboost(lenna);
+	// unsharp(lenna);
+	// highboost(lenna);
+
+	// Part 5
 
 	return 0;
 }
@@ -97,8 +99,36 @@ void normalize(ImageType &image, vector<int> calcStore) {
 }
 
 void gradient(char fname[]) {
-	ImageType baseImage(256, 256, 255);
+	// Initialize f
+	// ImageType baseImage = padding(fname, 9);
+	ImageType baseImage = padding(256, 256, 255);
+	ImageType horImage(256, 256, 255);
+	ImageType vertImage(256, 256, 255);
 	readImage(fname, baseImage);
+
+	vector<int> horVals;
+	// Calculate for horizontal
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			int temp1, temp2, temp3;
+			baseImage.getPixelVal(i, j, temp1);
+			baseImage.getPixelVal(i, j + 1, temp2);
+			temp3 = temp1 - temp2;
+			horVals.push_back(temp3);
+		}
+	}
+
+	vector<int> vertVals;
+	// Calculate for vertical
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			int temp1, temp2, temp3;
+			baseImage.getPixelVal(i, j, temp1);
+			baseImage.getPixelVal(i + 1, j, temp2);
+			temp3 = temp1 - temp2;
+			vertVals.push_back(temp3);
+		}
+	}
 }
 
 void unsharp(char fname[]) {
