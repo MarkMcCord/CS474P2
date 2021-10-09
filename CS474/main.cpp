@@ -18,6 +18,7 @@ void readImage(char fname[], ImageType &image);
 void writeImage(char fname[], ImageType &image);
 
 ImageType padding(char fname[], int size);
+void normalize(ImageType &image, vector<int> calcStore);
 void salt(char fname[], int percent);
 
 void smoothing(char fname[], int size, bool G);
@@ -25,6 +26,8 @@ void median(char fname[], int size, int percent);
 void correlation(char image[], char pattern[]);
 void unsharp(char fname[]);
 void highboost(char fname[]);
+void gradient(char fname[]);
+void laplacian(char fname[]);
 
 int main(int argc, char *argv[]) {
 	char boat[]    = "boat.pgm";
@@ -74,6 +77,30 @@ ImageType padding(char fname[], int size) {
 	return newImage;
 }
 
+void normalize(ImageType &image, vector<int> calcStore) {
+	int min, max, value;
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			value = calcStore[i * 256 + j];
+
+			if (value > max) { max = value; }
+			if (value < min) min = value;
+		}
+	}
+
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			double scaled_value = 255.0 * ((calcStore[i * 256 + j] - min) / (double) (max - min));
+			image.setPixelVal(i, j, scaled_value);
+		}
+	}
+}
+
+void gradient(char fname[]) {
+	ImageType baseImage(256, 256, 255);
+	readImage(fname, baseImage);
+}
+
 void unsharp(char fname[]) {
 	// Initialize f
 	ImageType baseImage(256, 256, 255);
@@ -82,11 +109,12 @@ void unsharp(char fname[]) {
 
 	// Initialize FLP
 	smoothing(fname, 15, 1);
-	char smoothedImage[] = "smooth_i_a_5.pgm";
+	char smoothedImage[] = "smooth_i_G_5.pgm";
 	smoothedImage[7]     = fname[0];
 
 	readImage(smoothedImage, tempImage);
 
+	vector<int> calcStore;
 	// Initialize and calculate Gmask
 	ImageType maskImage(256, 256, 255);
 	for (int i = 0; i < 256; i++) {
@@ -95,10 +123,14 @@ void unsharp(char fname[]) {
 			baseImage.getPixelVal(i, j, temp1);
 			tempImage.getPixelVal(i, j, temp2);
 			temp3 = temp1 - temp2;
-			maskImage.setPixelVal(i, j, temp3);
+			calcStore.push_back(temp3);
 		}
 	}
+	// Create image after values have been normalized
+	normalize(maskImage, calcStore);
 
+	vector<int> calcStore2;
+	int k = 1;
 	// Initialize and calculate G
 	ImageType finalImage(256, 256, 255);
 	for (int i = 0; i < 256; i++) {
@@ -106,12 +138,15 @@ void unsharp(char fname[]) {
 			int temp1, temp2, temp3;
 			baseImage.getPixelVal(i, j, temp1);
 			maskImage.getPixelVal(i, j, temp2);
-			temp3 = temp1 + (temp2 * 1);
-			finalImage.setPixelVal(i, j, temp3);
+			temp3 = (temp1 + (temp2 * k)) / 1 + k;
+			calcStore2.push_back(temp3);
 		}
 	}
 
-	char unsharpImage[] = "unsharp_i_a_5.pgm";
+	// Create image after values have been normalized
+	normalize(finalImage, calcStore2);
+
+	char unsharpImage[] = "unsharp_i_G_5.pgm";
 	unsharpImage[8]     = fname[0];
 	writeImage(unsharpImage, finalImage);
 }
@@ -124,11 +159,12 @@ void highboost(char fname[]) {
 
 	// Initialize FLP
 	smoothing(fname, 15, 1);
-	char smoothedImage[] = "smooth_i_a_5.pgm";
+	char smoothedImage[] = "smooth_i_G_5.pgm";
 	smoothedImage[7]     = fname[0];
 
 	readImage(smoothedImage, tempImage);
 
+	vector<int> calcStore;
 	// Initialize and calculate Gmask
 	ImageType maskImage(256, 256, 255);
 	for (int i = 0; i < 256; i++) {
@@ -137,10 +173,14 @@ void highboost(char fname[]) {
 			baseImage.getPixelVal(i, j, temp1);
 			tempImage.getPixelVal(i, j, temp2);
 			temp3 = temp1 - temp2;
-			maskImage.setPixelVal(i, j, temp3);
+			calcStore.push_back(temp3);
 		}
 	}
+	// Create image after values have been normalized
+	normalize(maskImage, calcStore);
 
+	vector<int> calcStore2;
+	int k = 2;
 	// Initialize and calculate G
 	ImageType finalImage(256, 256, 255);
 	for (int i = 0; i < 256; i++) {
@@ -148,12 +188,15 @@ void highboost(char fname[]) {
 			int temp1, temp2, temp3;
 			baseImage.getPixelVal(i, j, temp1);
 			maskImage.getPixelVal(i, j, temp2);
-			temp3 = temp1 + (temp2 * 2);
-			finalImage.setPixelVal(i, j, temp3);
+			temp3 = (temp1 + (temp2 * k)) / 1 + k;
+			calcStore2.push_back(temp3);
 		}
 	}
 
-	char highboostImage[] = "highboost_i_a_5.pgm";
+	// Create image after values have been normalized
+	normalize(finalImage, calcStore2);
+
+	char highboostImage[] = "highboost_i_G_5.pgm";
 	highboostImage[10]    = fname[0];
 	writeImage(highboostImage, finalImage);
 }
