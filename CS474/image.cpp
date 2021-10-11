@@ -22,25 +22,25 @@ ImageType::ImageType(int tmpN, int tmpM, int tmpQ)
  M = tmpM;
  Q = tmpQ;
 
- pixelValue = new int* [N];
- for(i=0; i<N; i++) {
-   pixelValue[i] = new int[M];
-   for(j=0; j<M; j++)
+ pixelValue = new int* [M];
+ for(i=0; i<M; i++) {
+   pixelValue[i] = new int[N];
+   for(j=0; j<N; j++)
      pixelValue[i][j] = 0;
  }
 }
 
 void ImageType::getImageInfo(int& rows, int& cols, int& levels)
 {
- rows = N;
- cols = M;
+ rows = M;
+ cols = N;
  levels = Q;
 } 
 
 void ImageType::setImageInfo(int rows, int cols, int levels)
 {
- N= rows;
- M= cols;
+ M= rows;
+ N= cols;
  Q= levels;
 } 
 

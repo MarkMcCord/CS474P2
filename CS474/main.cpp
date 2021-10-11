@@ -36,11 +36,11 @@ int main(int argc, char *argv[]) {
 	char lenna[]   = "lenna.pgm";
 	char peppers[] = "peppers.pgm";
 	char sf[]      = "sf.pgm";
-	char image[]   = "image.pgm";
-	char pattern[] = "pattern.pgm";
+	char image[]   = "Image.pgm";
+	char pattern[] = "Pattern.pgm";
 
 	// Part 1
-	// correlation(image, pattern);
+	correlation(image, pattern);
 
 	// Part 2
 	// smoothing(lenna, 7, 0);
@@ -402,66 +402,125 @@ void correlation(char image[], char pattern[]) {
 	int rowsPattern, colsPattern;
 	int levelsImage, levelsPattern;
 
-	ImageType fullImage(442, 288, 255);
-	ImageType patternImage(83, 55, 255);
+	ImageType Image(442, 288, 255);
+	ImageType Pattern(83, 55, 255);
 
-	readImage(image, fullImage);
-	readImage(pattern, patternImage);
+	readImage(image, Image);
+	readImage(pattern, Pattern);
 
-	fullImage.getImageInfo(rowsImage, colsImage, levelsImage);
-	patternImage.getImageInfo(rowsPattern, colsPattern, levelsPattern);
-
-	vector<int> corr;
-
-	int temp;
-
-	// iterate through image pixels
-	for (int i = 0; i < rowsImage; i++) {
-		for (int j = 0; j < colsImage; j++) {
-			int sum   = 0;
-			int temp2 = 0;
-			int temp3 = 0;
-
-			// iterate over mask
-			for (int k = -rowsPattern / 2; k < rowsPattern / 2; k++) {
-				for (int l = -colsPattern / 2; l < colsPattern / 2; l++) {
-					if (k < 0 || i + k >= rowsPattern || l < 0 || j + l >= colsPattern)
-						sum += 0;
-					else {
-						patternImage.getPixelVal(k, l, temp2);
-						fullImage.getPixelVal(k + i, j + l, temp3);
-						sum += temp2 * temp3;
-					}
-				}
-			}
-			corr.push_back(sum);
-		}
-	}
-
-	int temp4;
-
-	int max = 0;
-	int min = 1000000000;
-	int value;
-
-	// find min an max correlation values
-	for (int i = 0; i < rowsImage; i++) {
-		for (int j = 0; j < colsImage; j++) {
-			value = corr[i * 288 + j];
-
-			if (value > max) { max = value; }
-			if (value < min) min = value;
-		}
-	}
+	Image.getImageInfo(rowsImage, colsImage, levelsImage);
+	Pattern.getImageInfo(rowsPattern, colsPattern, levelsPattern);
 
 	ImageType fullImageF(442, 288, 255);
 	char newfname[] = "correlatedImage.pgm";
-	for (int i = 0; i < rowsImage; i++) {
-		for (int j = 0; j < colsImage; j++) { fullImageF.setPixelVal(i, j, 255 * corr[i * 288 + j] / (max - min)); }
-	}
 
+	int temp1;
+	int temp2;
+	int sum = 0;
+	int min = 1000000000;
+	int max = 0;
+	// iterate through image pixels
+	for (int i = 0; i < rowsImage; i++) {
+		for (int j = 0; j < colsImage; j++) {
+			// iterate over mask
+			for (int k = -(rowsPattern / 2); k < (rowsPattern / 2); k++) {
+				for (int l = -(colsPattern / 2); l < (colsPattern / 2); l++) {
+					if (i + k < 0 || i + k >= rowsImage || j + l < 0 || j + l >= colsImage) {
+						sum = sum + 0;
+					} else {
+						Pattern.getPixelVal(k + (rowsPattern / 2), l + (colsPattern / 2), temp1);
+						Image.getPixelVal(i + k, j + l, temp2);
+						if (sum > sum + (temp1*temp2)){
+							cout << "yes" << endl;
+						}
+						sum = sum + temp1 * temp2;
+					}
+				}
+			}
+			fullImageF.setPixelVal(i, j, sum);
+			if (sum >= max) { max = sum; }
+			if (sum <= min) { min = sum; }
+			sum = 0;
+		}
+	}
+	for (int i = 0; i < rowsImage; i++) {
+		for (int j = 0; j < colsImage; j++) {
+			fullImageF.getPixelVal(i, j, sum);
+			double scaled = 255 * (sum - min) / (double) (max - min);
+			if(scaled > 255){
+				cout << "h" << endl;
+			}
+			fullImageF.setPixelVal(i, j, scaled);
+		}
+	}
 	writeImage(newfname, fullImageF);
 }
+
+/*void correlation(char image[], char pattern[]) {
+    int rowsImage, colsImage;
+    int rowsPattern, colsPattern;
+    int levelsImage, levelsPattern;
+
+    ImageType fullImage(442, 288, 255);
+    ImageType patternImage(83, 55, 255);
+
+    readImage(image, fullImage);
+    readImage(pattern, patternImage);
+
+    fullImage.getImageInfo(rowsImage, colsImage, levelsImage);
+    patternImage.getImageInfo(rowsPattern, colsPattern, levelsPattern);
+
+    vector<int> corr;
+
+    int temp;
+
+    // iterate through image pixels
+    for (int i = 0; i < rowsImage; i++) {
+        for (int j = 0; j < colsImage; j++) {
+            int sum   = 0;
+            int temp2 = 0;
+            int temp3 = 0;
+
+            // iterate over mask
+            for (int k = -rowsPattern / 2; k < rowsPattern / 2; k++) {
+                for (int l = -colsPattern / 2; l < colsPattern / 2; l++) {
+                    if (k < 0 || i + k >= rowsPattern || l < 0 || j + l >= colsPattern)
+                        sum += 0;
+                    else {
+                        patternImage.getPixelVal(k, l, temp2);
+                        fullImage.getPixelVal(k + i, j + l, temp3);
+                        sum += temp2 * temp3;
+                    }
+                }
+            }
+            corr.push_back(sum);
+        }
+    }
+
+    int temp4;
+
+    int max = 0;
+    int min = 1000000000;
+    int value;
+
+    // find min an max correlation values
+    for (int i = 0; i < rowsImage; i++) {
+        for (int j = 0; j < colsImage; j++) {
+            value = corr[i * 288 + j];
+
+            if (value > max) { max = value; }
+            if (value < min) min = value;
+        }
+    }
+
+    ImageType fullImageF(442, 288, 255);
+    char newfname[] = "correlatedImage.pgm";
+    for (int i = 0; i < rowsImage; i++) {
+        for (int j = 0; j < colsImage; j++) { fullImageF.setPixelVal(i, j, 255 * corr[i * 288 + j] / (max - min)); }
+    }
+
+    writeImage(newfname, fullImageF);
+}*/
 
 void salt(char fname[], int percent) {
 	char newfname[] = "salted_i.pgm";

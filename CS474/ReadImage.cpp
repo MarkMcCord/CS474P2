@@ -37,8 +37,8 @@ void readImage(char fname[], ImageType& image)
 
  ifp.getline(header,100,'\n'); //size
  //cout << header << endl;
- M=strtol(header ,&ptr,0);
- N=strtol(ptr,&ptr,0);
+ N=strtol(header ,&ptr,0);
+ M=strtol(ptr,&ptr,0);
 
  ifp.getline(header,100,'\n'); //range
  //cout << header << endl;

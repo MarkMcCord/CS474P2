@@ -14,7 +14,7 @@ void writeImage(char fname[], ImageType& image)
  unsigned char *charImage;
  ofstream ofp;
 
- image.getImageInfo(N, M, Q);
+ image.getImageInfo(M, N, Q);
 
  charImage = (unsigned char *) new unsigned char [M*N];
 
@@ -22,10 +22,10 @@ void writeImage(char fname[], ImageType& image)
 
  int val;
 
- for(i=0; i<N; i++)
-   for(j=0; j<M; j++) {
+ for(i=0; i<M; i++)
+   for(j=0; j<N; j++) {
      image.getPixelVal(i, j, val);
-     charImage[i*M+j]=(unsigned char)val;
+     charImage[i*N+j]=(unsigned char)val;
    }
 
  ofp.open(fname, ios::out | ios::binary);

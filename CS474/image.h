@@ -7,7 +7,7 @@ class ImageType {
  public:
    ImageType();
    ImageType(int, int, int);
-   void getImageInfo(int&, int&, int&);
+   void getImageInfo(int& rows, int& cols, int& levels);
    void setImageInfo(int, int, int);
    void setPixelVal(int, int, int);
    void getPixelVal(int, int, int&);
