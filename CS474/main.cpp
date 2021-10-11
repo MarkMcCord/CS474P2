@@ -26,7 +26,7 @@ void median(char fname[], int size, int percent);
 void correlation(char image[], char pattern[]);
 void unsharp(char fname[]);
 void highboost(char fname[]);
-void gradient(char fname[]);
+void gradient(char fname[], bool p);
 void laplacian(char fname[]);
 
 int main(int argc, char *argv[]) {
@@ -60,6 +60,8 @@ int main(int argc, char *argv[]) {
 	// highboost(lenna);
 
 	// Part 5
+	// gradient(lenna, 1);
+	laplacian(lenna);
 
 	return 0;
 }
@@ -98,37 +100,194 @@ void normalize(ImageType &image, vector<int> calcStore) {
 	}
 }
 
-void gradient(char fname[]) {
+static int prewittY[3][3] = {{-1, -1, -1}, {0, 0, 0}, {1, 1, 1}};
+
+static int prewittX[3][3] = {{-1, 0, 1}, {-1, 0, 1}, {-1, 0, 1}};
+
+static int sobelY[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
+
+static int sobelX[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
+
+static int lap[3][3] = {{0, 1, 0}, {1, -4, 1}, {0, 1, 0}};
+
+void laplacian(char fname[]) {
+	ImageType baseImage = padding(fname, 3);
+	ImageType lapImage(256, 256, 255);
+
+	vector<int> calcStore;
+	// Laplacian calculation
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {  // for each pixel in the original image
+			int temp3 = 0;
+			for (int k = i; k < i + 3; k++) {
+				for (int l = j; l < j + 3; l++) {  // for each weight in the mask
+					int temp1;
+					baseImage.getPixelVal(k, l, temp1);
+					temp3 += temp1 * lap[k - i][l - j];
+				}
+			}
+			calcStore.push_back(temp3);
+		}
+	}
+
+	// Store sharpened into lapImage after normalization
+	normalize(lapImage, calcStore);
+	char finImage[] = "laplacian_i.pgm";
+	finImage[10]    = finImage[0];
+	writeImage(finImage, lapImage);
+
+	vector<int> calcStore2;
+	// Calculate values of g
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {  // for each pixel in the original image
+			int temp3 = 0;
+			int c     = -1;
+			int temp1, temp2;
+			baseImage.getPixelVal(i, j, temp1);
+			lapImage.getPixelVal(i, j, temp2);
+			temp3 += temp1 + c * (temp2);
+			calcStore2.push_back(temp3);
+		}
+	}
+
+	ImageType finalImage(256, 256, 255);
+	// char finImage[] = "laplacian_i.pgm";
+	// finImage[10]    = finImage[0];
+	// // Store sharpened into finalImage after normalization
+	// normalize(finalImage, calcStore2);
+	// writeImage(finImage, lapImage);
+}
+
+void gradient(char fname[], bool p) {
 	// Initialize f
-	// ImageType baseImage = padding(fname, 9);
-	ImageType baseImage = padding(256, 256, 255);
+	ImageType baseImage = padding(fname, 3);
 	ImageType horImage(256, 256, 255);
-	ImageType vertImage(256, 256, 255);
-	readImage(fname, baseImage);
+	ImageType verImage(256, 256, 255);
 
-	vector<int> horVals;
-	// Calculate for horizontal
-	for (int i = 0; i < 256; i++) {
-		for (int j = 0; j < 256; j++) {
-			int temp1, temp2, temp3;
-			baseImage.getPixelVal(i, j, temp1);
-			baseImage.getPixelVal(i, j + 1, temp2);
-			temp3 = temp1 - temp2;
-			horVals.push_back(temp3);
+	int temp;
+	int sumHor = 0;
+	int sumVer = 0;
+	int hmin   = 1000;
+	int hmax   = 0;
+	int vmin   = 1000;
+	int vmax   = 0;
+
+	if (p) {
+		for (int i = 0; i < 256; i++) {
+			for (int j = 0; j < 256; j++) {  // for each pixel in the original image
+				for (int k = i; k < i + 3; k++) {
+					for (int l = j; l < j + 3; l++) {  // for each weight in the mask
+						baseImage.getPixelVal(k, l, temp);
+						sumHor = sumHor + (temp * prewittX[k - i][l - j]);
+						sumVer = sumVer + (temp * prewittY[k - i][l - j]);
+						// cout << k << ", " << l << endl;
+					}
+				}
+				// calculate sum
+				horImage.setPixelVal(i, j, sumHor);
+				verImage.setPixelVal(i, j, sumVer);
+				// cout << "Pixel " << i << ", " << j << endl;
+
+				if (sumHor > hmax) { hmax = sumHor; }
+				if (sumHor < hmin) { hmin = sumHor; }
+				if (sumVer > vmax) { vmax = sumVer; }
+				if (sumVer < vmin) { vmin = sumVer; }
+
+				sumHor = 0;
+				sumVer = 0;
+			}
 		}
+		char hor[] = "Hor_Prewitt_i.pgm";
+		hor[12]    = fname[0];
+		char ver[] = "Ver_Prewitt_i.pgm";
+		ver[12]    = fname[0];
+
+		double normalized;
+
+		for (int i = 0; i < 256; i++) {
+			for (int j = 0; j < 256; j++) {
+				horImage.getPixelVal(i, j, temp);
+				normalized = 255 * (temp - hmin) / (double) (hmax - hmin);
+				horImage.setPixelVal(i, j, normalized);
+
+				verImage.getPixelVal(i, j, temp);
+				normalized = 255 * (temp - vmin) / (double) (vmax - vmin);
+				verImage.setPixelVal(i, j, normalized);
+			}
+		}
+
+		writeImage(hor, horImage);
+		writeImage(ver, verImage);
 	}
 
-	vector<int> vertVals;
-	// Calculate for vertical
+	if (!p) {
+		for (int i = 0; i < 256; i++) {
+			for (int j = 0; j < 256; j++) {  // for each pixel in the original image
+				for (int k = i; k < i + 3; k++) {
+					for (int l = j; l < j + 3; l++) {  // for each weight in the mask
+						baseImage.getPixelVal(k, l, temp);
+						sumHor = sumHor + (temp * sobelX[k - i][l - j]);
+						sumVer = sumVer + (temp * sobelY[k - i][l - j]);
+						// cout << k << ", " << l << endl;
+					}
+				}
+				// calculate sum
+				horImage.setPixelVal(i, j, sumHor);
+				verImage.setPixelVal(i, j, sumVer);
+				// cout << "Pixel " << i << ", " << j << endl;
+
+				if (sumHor > hmax) { hmax = sumHor; }
+				if (sumHor < hmin) { hmin = sumHor; }
+				if (sumVer > vmax) { vmax = sumVer; }
+				if (sumVer < vmin) { vmin = sumVer; }
+
+				sumHor = 0;
+				sumVer = 0;
+			}
+		}
+		char hor[] = "Hor_Prewitt_i.pgm";
+		hor[12]    = fname[0];
+		char ver[] = "Ver_Prewitt_i.pgm";
+		ver[12]    = fname[0];
+
+		double normalized;
+
+		for (int i = 0; i < 256; i++) {
+			for (int j = 0; j < 256; j++) {
+				horImage.getPixelVal(i, j, temp);
+				normalized = 255 * (temp - hmin) / (double) (hmax - hmin);
+				horImage.setPixelVal(i, j, normalized);
+
+				verImage.getPixelVal(i, j, temp);
+				normalized = 255 * (temp - vmin) / (double) (vmax - vmin);
+				verImage.setPixelVal(i, j, normalized);
+			}
+		}
+
+		writeImage(hor, horImage);
+		writeImage(ver, verImage);
+	}
+
+	double m;
+	vector<int> calc;
+	int y;
+	int x;
+	ImageType Magnitude(256, 256, 255);
+
 	for (int i = 0; i < 256; i++) {
 		for (int j = 0; j < 256; j++) {
-			int temp1, temp2, temp3;
-			baseImage.getPixelVal(i, j, temp1);
-			baseImage.getPixelVal(i + 1, j, temp2);
-			temp3 = temp1 - temp2;
-			vertVals.push_back(temp3);
+			horImage.getPixelVal(i, j, x);
+			verImage.getPixelVal(i, j, y);
+			m = x * x + y * y;
+			m = sqrt(m);
+			calc.push_back(m);
+			// Magnitude.setPixelVal(i, j, m);
 		}
 	}
+	normalize(Magnitude, calc);
+	char mag[] = "Mag_Prewitt_i.pgm";
+	mag[12]    = fname[0];
+	writeImage(mag, Magnitude);
 }
 
 void unsharp(char fname[]) {
