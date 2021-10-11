@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include <algorithm>
+#include <climits>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -57,11 +58,17 @@ int main(int argc, char *argv[]) {
 
 	// Part 4
 	// unsharp(lenna);
+	// unsharp(sf);
 	// highboost(lenna);
+	// highboost(sf);
 
 	// Part 5
 	// gradient(lenna, 1);
-	laplacian(lenna);
+	// gradient(lenna, 0);
+	// gradient(sf, 1);
+	// gradient(sf, 0);
+	// laplacian(lenna);
+	// laplacian(sf);
 
 	return 0;
 }
@@ -82,7 +89,10 @@ ImageType padding(char fname[], int size) {
 }
 
 void normalize(ImageType &image, vector<int> calcStore) {
-	int min, max, value;
+	int min   = INT_MAX;
+	int max   = INT_MIN;
+	int value = 0;
+
 	for (int i = 0; i < 256; i++) {
 		for (int j = 0; j < 256; j++) {
 			value = calcStore[i * 256 + j];
@@ -132,30 +142,27 @@ void laplacian(char fname[]) {
 
 	// Store sharpened into lapImage after normalization
 	normalize(lapImage, calcStore);
-	char finImage[] = "laplacian_i.pgm";
-	finImage[10]    = finImage[0];
-	writeImage(finImage, lapImage);
 
 	vector<int> calcStore2;
-	// Calculate values of g
+	// // Calculate values of g
 	for (int i = 0; i < 256; i++) {
 		for (int j = 0; j < 256; j++) {  // for each pixel in the original image
 			int temp3 = 0;
-			int c     = -1;
 			int temp1, temp2;
+			int c = -1;
 			baseImage.getPixelVal(i, j, temp1);
 			lapImage.getPixelVal(i, j, temp2);
-			temp3 += temp1 + c * (temp2);
+			temp3 += temp1 + (c * (temp2));
 			calcStore2.push_back(temp3);
 		}
 	}
 
 	ImageType finalImage(256, 256, 255);
-	// char finImage[] = "laplacian_i.pgm";
-	// finImage[10]    = finImage[0];
-	// // Store sharpened into finalImage after normalization
-	// normalize(finalImage, calcStore2);
-	// writeImage(finImage, lapImage);
+	char finImage[] = "laplacian_i.pgm";
+	finImage[10]    = finImage[0];
+	// Store sharpened image into finalImage after normalization
+	normalize(finalImage, calcStore2);
+	writeImage(finImage, finalImage);
 }
 
 void gradient(char fname[], bool p) {
