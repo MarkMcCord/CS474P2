@@ -430,9 +430,6 @@ void correlation(char image[], char pattern[]) {
 					} else {
 						Pattern.getPixelVal(k + (rowsPattern / 2), l + (colsPattern / 2), temp1);
 						Image.getPixelVal(i + k, j + l, temp2);
-						if (sum > sum + (temp1*temp2)){
-							cout << "yes" << endl;
-						}
 						sum = sum + temp1 * temp2;
 					}
 				}
@@ -446,10 +443,7 @@ void correlation(char image[], char pattern[]) {
 	for (int i = 0; i < rowsImage; i++) {
 		for (int j = 0; j < colsImage; j++) {
 			fullImageF.getPixelVal(i, j, sum);
-			double scaled = 255 * (sum - min) / (double) (max - min);
-			if(scaled > 255){
-				cout << "h" << endl;
-			}
+			double scaled = 255l * (sum - min) / (double) (max - min);
 			fullImageF.setPixelVal(i, j, scaled);
 		}
 	}
