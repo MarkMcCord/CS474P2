@@ -40,35 +40,66 @@ int main(int argc, char *argv[]) {
 	char pattern[] = "Pattern.pgm";
 
 	// Part 1
+	cout << "Part 1 start" << endl;
 	correlation(image, pattern);
 
 	// Part 2
-	// smoothing(lenna, 7, 0);
-	// smoothing(lenna, 15, 0);
-	// smoothing(lenna, 7, 1);
-	// smoothing(lenna, 15, 1);
+	cout << "Part 2 start" << endl;
+	smoothing(lenna, 7, 0);
+	smoothing(lenna, 15, 0);
+	smoothing(lenna, 7, 1);
+	smoothing(lenna, 15, 1);
+
+	smoothing(sf, 7, 0);
+	smoothing(sf, 15, 0);
+	smoothing(sf, 7, 1);
+	smoothing(sf, 15, 1);
 
 	// Part 3
-	// salt(lenna, 50);
-	// char salted_l[] = "salted_l.pgm";
-	// median(salted_l, 7, 50);
-	// median(salted_l, 15, 50);
-	// smoothing(salted_l, 7, 0);
-	// smoothing(salted_l, 15, 0);
+	cout << "Part 3 start" << endl;
+	salt(lenna, 50);
+	char salted_l50[] = "salted_50_l.pgm";
+	median(salted_l50, 7, 50);
+	median(salted_l50, 15, 50);
+	smoothing(salted_l50, 7, 0);
+	smoothing(salted_l50, 15, 0);
+
+	salt(boat, 50);
+	char salted_b50[] = "salted_50_l.pgm";
+	median(salted_b50, 7, 50);
+	median(salted_b50, 15, 50);
+	smoothing(salted_b50, 7, 0);
+	smoothing(salted_b50, 15, 0);
+
+	salt(lenna, 30);
+	char salted_l30[] = "salted_30_l.pgm";
+	median(salted_l30, 7, 30);
+	median(salted_l30, 15, 30);
+	smoothing(salted_l30, 7, 0);
+	smoothing(salted_l30, 15, 0);
+
+	salt(boat, 30);
+	char salted_b30[] = "salted_30_l.pgm";
+	median(salted_b30, 7, 30);
+	median(salted_b30, 15, 30);
+	smoothing(salted_b30, 7, 0);
+	smoothing(salted_b30, 15, 0);
 
 	// Part 4
-	// unsharp(lenna);
-	// unsharp(sf);
-	// highboost(lenna);
-	// highboost(sf);
+	cout << "Part 4 start" << endl;
+	unsharp(lenna);
+	unsharp(sf);
+	highboost(lenna);
+	highboost(sf);
 
 	// Part 5
-	// gradient(lenna, 1);
-	// gradient(lenna, 0);
-	// gradient(sf, 1);
-	// gradient(sf, 0);
-	// laplacian(lenna);
-	// laplacian(sf);
+	cout << "Part 5 start" << endl;
+	gradient(lenna, 1);
+	gradient(lenna, 0);
+	gradient(sf, 1);
+	gradient(sf, 0);
+	laplacian(lenna);
+	laplacian(sf);
 
 	return 0;
 }
@@ -204,10 +235,10 @@ void gradient(char fname[], bool p) {
 				sumVer = 0;
 			}
 		}
-		char hor[] = "Hor_Prewitt_i.pgm";
-		hor[12]    = fname[0];
-		char ver[] = "Ver_Prewitt_i.pgm";
-		ver[12]    = fname[0];
+		char hor[] = "Hor_Prewitt_mask_i.pgm";
+		hor[17]    = fname[0];
+		char ver[] = "Ver_Prewitt_mask_i.pgm";
+		ver[17]    = fname[0];
 
 		double normalized;
 
@@ -252,10 +283,10 @@ void gradient(char fname[], bool p) {
 				sumVer = 0;
 			}
 		}
-		char hor[] = "Hor_Prewitt_i.pgm";
-		hor[12]    = fname[0];
-		char ver[] = "Ver_Prewitt_i.pgm";
-		ver[12]    = fname[0];
+		char hor[] = "Hor_Prewitt_mask_i.pgm";
+		hor[17]    = fname[0];
+		char ver[] = "Ver_Prewitt_mask_i.pgm";
+		ver[17]    = fname[0];
 
 		double normalized;
 
@@ -277,6 +308,7 @@ void gradient(char fname[], bool p) {
 
 	double m;
 	vector<int> calc;
+	vector<int> calc2;
 	int y;
 	int x;
 	ImageType Magnitude(256, 256, 255);
@@ -288,13 +320,41 @@ void gradient(char fname[], bool p) {
 			m = x * x + y * y;
 			m = sqrt(m);
 			calc.push_back(m);
-			// Magnitude.setPixelVal(i, j, m);
+			Magnitude.setPixelVal(i, j, m);
 		}
 	}
 	normalize(Magnitude, calc);
-	char mag[] = "Mag_Prewitt_i.pgm";
-	mag[12]    = fname[0];
-	writeImage(mag, Magnitude);
+	if (p) {
+		char mag[] = "Mag_Prewitt_mask_i.pgm";
+		mag[17]    = fname[0];
+		writeImage(mag, Magnitude);
+	} else {
+		char mag[] = "Mag_Sobel_mask_i.pgm";
+		mag[15]    = fname[0];
+		writeImage(mag, Magnitude);
+	}
+
+	ImageType Final(256, 256, 255);
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 256; j++) {
+			baseImage.getPixelVal(i + 1, j + 1, x);
+			Magnitude.getPixelVal(i, j, y);
+			m = x + y;
+			calc2.push_back(m);
+			Final.setPixelVal(i, j, m);
+		}
+	}
+
+	normalize(Final, calc2);
+	if (p) {
+		char final[] = "Prewitt_sharp_i.pgm";
+		final[14]    = fname[0];
+		writeImage(final, Final);
+	} else {
+		char final[] = "Sobel_sharp_i.pgm";
+		final[12]    = fname[0];
+		writeImage(final, Final);
+	}
 }
 
 void unsharp(char fname[]) {
@@ -334,6 +394,7 @@ void unsharp(char fname[]) {
 			int temp1, temp2, temp3;
 			baseImage.getPixelVal(i, j, temp1);
 			maskImage.getPixelVal(i, j, temp2);
+			// fix???
 			temp3 = (temp1 + (temp2 * k)) / 1 + k;
 			calcStore2.push_back(temp3);
 		}
@@ -517,8 +578,10 @@ void correlation(char image[], char pattern[]) {
 }*/
 
 void salt(char fname[], int percent) {
-	char newfname[] = "salted_i.pgm";
-	newfname[7]     = fname[0];
+	char newfname[] = "salted_ii_i.pgm";
+	newfname[10]    = fname[0];
+	newfname[7]     = '0' + percent / 10;
+	newfname[8]     = '0' + percent % 10;
 
 	ImageType image(256, 256, 255);
 	readImage(fname, image);
@@ -658,7 +721,7 @@ void median(char fname[], int size, int percent) {
 			sort(array, array + n);
 			temp = array[(size * size) / 2];
 			medianImage.setPixelVal(i, j, temp);
-			cout << "Pixel " << i << ", " << j << endl;
+			// cout << "Pixel " << i << ", " << j << endl;
 			temp = 0;
 		}
 	}
